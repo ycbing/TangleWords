@@ -19,6 +19,7 @@ import GameBoard from "./GameBoard";
 import TileTray from "./TileTray";
 import CluePanel from "./CluePanel";
 import ShareModal from "./ShareModal";
+import TutorialModal from "./TutorialModal";
 
 interface TrayTile {
   id: number;
@@ -413,6 +414,8 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
           onClose={() => setShowShare(false)}
         />
       )}
+
+      <TutorialModal />
     </div>
   );
 }
