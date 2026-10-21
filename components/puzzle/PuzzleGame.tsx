@@ -29,6 +29,17 @@ interface TrayTile {
 
 const REVEALS = 3;
 
+/** add days to a YYYY-MM-DD string (UTC-safe, no timezone drift) */
+function addDays(dateStr: string, delta: number): string {
+  const d = new Date(dateStr + "T00:00:00Z");
+  d.setUTCDate(d.getUTCDate() + delta);
+  return d.toISOString().slice(0, 10);
+}
+
+function todayStr() {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Shanghai" });
+}
+
 export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
   const rows = puzzle.rows;
   const cols = puzzle.cols;
@@ -310,6 +321,9 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
   }, [rows, cols, puzzle, date]);
 
   const selectedTile = selected !== null ? tileById(selected) : undefined;
+  const isToday = date === todayStr();
+  const prevDate = addDays(date, -1);
+  const nextDate = addDays(date, 1);
   const solvedCount = useMemo(() => {
     let n = 0;
     for (let r = 0; r < rows; r++)
@@ -351,17 +365,41 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-4 px-4 pb-8 lg:flex-row lg:items-start">
         {/* left: board */}
         <div className="flex-1">
-          <div className="mb-3 text-center">
-            <h1 className="text-xl font-extrabold tracking-tight">
-              {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              })}
-            </h1>
-            <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
-              Theme: {puzzle.theme}
-            </p>
+          <div className="mb-3 flex items-center justify-center gap-3 text-center">
+            <Link
+              href={`/?date=${prevDate}`}
+              className="grid h-8 w-8 place-items-center rounded-full bg-white/80 text-stone-600 shadow-sm hover:bg-white dark:bg-white/10 dark:text-stone-300 dark:hover:bg-white/20"
+              title="Previous puzzle"
+            >
+              ‹
+            </Link>
+            <div>
+              <h1 className="text-xl font-extrabold tracking-tight">
+                {new Date(date + "T00:00:00").toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+                {isToday && (
+                  <span className="ml-2 rounded-full bg-amber-500 px-2 py-0.5 align-middle text-[10px] font-bold uppercase tracking-wide text-white">
+                    Today
+                  </span>
+                )}
+              </h1>
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-300">
+                Theme: {puzzle.theme}
+              </p>
+            </div>
+            {!isToday && (
+              <Link
+                href={`/?date=${nextDate}`}
+                className="grid h-8 w-8 place-items-center rounded-full bg-white/80 text-stone-600 shadow-sm hover:bg-white dark:bg-white/10 dark:text-stone-300 dark:hover:bg-white/20"
+                title="Next puzzle"
+              >
+                ›
+              </Link>
+            )}
+            {isToday && <div className="h-8 w-8" />}
           </div>
 
           <GameBoard
@@ -427,6 +465,12 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
               >
                 Share your result
               </button>
+              <Link
+                href={`/?date=${prevDate}`}
+                className="rounded-xl bg-stone-100 py-2.5 text-center font-semibold text-stone-600 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300"
+              >
+                Play another puzzle
+              </Link>
               <button
                 onClick={() => setShowShare(false)}
                 className="rounded-xl bg-stone-100 py-2.5 font-semibold text-stone-600 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300"
