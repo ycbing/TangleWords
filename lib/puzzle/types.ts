@@ -41,6 +41,7 @@ export interface Tile {
 export interface Puzzle {
   date: string; // YYYY-MM-DD
   theme: string;
+  themeId: string; // theme id (e.g. "sports")
   title: string;
   rows: number;
   cols: number;

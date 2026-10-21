@@ -272,6 +272,7 @@ export function generatePuzzle(date: string, themeId?: string): Puzzle {
   return {
     date,
     theme: theme.name,
+    themeId: theme.id,
     title: theme.name,
     rows: ROWS,
     cols: COLS,

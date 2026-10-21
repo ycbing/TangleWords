@@ -346,6 +346,13 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
           <span className="text-lg">Tangle Words</span>
         </Link>
         <div className="flex items-center gap-3 text-sm">
+          <Link
+            href="/puzzles"
+            className="grid h-9 w-9 place-items-center rounded-full bg-white/70 hover:bg-white dark:bg-white/10 dark:hover:bg-white/20"
+            title="Past puzzles"
+          >
+            📚
+          </Link>
           <div className="rounded-full bg-white/70 px-3 py-1 font-semibold dark:bg-white/10" title="Daily streak">
             🔥 {streak.current}
           </div>
