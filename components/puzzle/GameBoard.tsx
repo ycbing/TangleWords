@@ -11,13 +11,14 @@ interface TrayTile {
 interface Props {
   puzzle: Puzzle;
   board: (number | null)[][];
+  rotations: Record<number, number>;
   revealedIds: number[];
   activeClue: number | null;
   shake: { key: number; tile: TrayTile } | null;
   onCellClick: (r: number, c: number) => void;
 }
 
-export default function GameBoard({ puzzle, board, revealedIds, activeClue, shake, onCellClick }: Props) {
+export default function GameBoard({ puzzle, board, rotations, revealedIds, activeClue, shake, onCellClick }: Props) {
   const tileById = (id: number) => puzzle.tiles.find((t) => t.id === id);
 
   // cells highlighted by active clue
@@ -74,7 +75,7 @@ export default function GameBoard({ puzzle, board, revealedIds, activeClue, shak
                     : "bg-white/90 ring-1 ring-stone-300 dark:bg-stone-700/70 dark:ring-stone-600"
               } ${isShaking ? "animate-shake bg-red-400" : ""}`}
               style={{
-                transform: tile && tile.rotation !== 0 ? `rotate(${tile.rotation}deg)` : undefined,
+                transform: tile && (rotations[tile.id] ?? 0) !== 0 ? `rotate(${rotations[tile.id] ?? 0}deg)` : undefined,
                 transition: "transform 150ms ease, background 150ms ease",
               }}
             >

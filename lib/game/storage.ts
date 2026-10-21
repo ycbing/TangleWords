@@ -12,6 +12,7 @@ export interface SavedState {
     seconds: number;
     moves: number;
     revealsLeft: number;
+    rotations?: Record<number, number>; // tile id -> rotation (tracks tiles on the board)
   };
 }
 

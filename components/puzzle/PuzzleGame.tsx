@@ -73,6 +73,21 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
   const [streak, setStreak] = useState<StreakInfo>(() => loadStreak());
   const [settings, setSettings] = useState(() => loadSettings());
 
+  // rotation lives with the tile itself, whether in tray or on the board.
+  // (old saves only stored rotation inside tray entries)
+  const [rotations, setRotations] = useState<Record<number, number>>(() => {
+    const map: Record<number, number> = {};
+    for (const t of puzzle.tiles) map[t.id] = t.rotation;
+    const saved = loadSaved()[date];
+    if (saved) {
+      for (const t of saved.tray) map[t.id] = t.rotation;
+      if (saved.rotations) Object.assign(map, saved.rotations);
+    }
+    return map;
+  });
+  const rotationsRef = useRef(rotations);
+  rotationsRef.current = rotations;
+
   // timer
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
@@ -90,11 +105,20 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
   const persist = useCallback(
     (b: (number | null)[][], t: TrayTile[], r: number[], c: boolean, s: number, m: number, rl: number) => {
       const all = loadSaved();
-      all[date] = { board: b, tray: t, revealedIds: r, completed: c, seconds: s, moves: m, revealsLeft: rl };
+      all[date] = { board: b, tray: t, revealedIds: r, completed: c, seconds: s, moves: m, revealsLeft: rl, rotations: rotationsRef.current };
       saveSaved(all);
     },
     [date]
   );
+
+  // keep the rotation map persisted even when no board change happens
+  useEffect(() => {
+    const all = loadSaved();
+    if (all[date]) {
+      all[date].rotations = rotations;
+      saveSaved(all);
+    }
+  }, [rotations, date]);
 
   // ---------- helpers ----------
   const tileById = useCallback(
@@ -190,14 +214,17 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
     (r: number, c: number) => {
       const tileId = board[r][c];
       if (tileId === null) return;
-      const tile = tray.find((t) => t.id === tileId);
+      const tile = puzzle.tiles.find((t) => t.id === tileId);
       if (!tile) return;
       const nextBoard = board.map((row) => [...row]);
       nextBoard[r][c] = null;
-      const nextTray = [...tray, { ...tile }];
+      const nextTray = [
+        ...tray,
+        { id: tile.id, letter: tile.letter, rotation: rotations[tileId] ?? 0 },
+      ];
       applyState(nextBoard, nextTray, revealedIds, moves + 1, revealsLeft, seconds);
     },
-    [board, tray, revealedIds, moves, revealsLeft, seconds, applyState]
+    [board, tray, puzzle, rotations, revealedIds, moves, revealsLeft, seconds, applyState]
   );
 
   /** rotate a tray tile (visual) */
@@ -206,6 +233,7 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
       setTray((prev) =>
         prev.map((t) => (t.id === tileId ? { ...t, rotation: (t.rotation + 90) % 360 } : t))
       );
+      setRotations((prev) => ({ ...prev, [tileId]: ((prev[tileId] ?? 0) + 90) % 360 }));
     },
     []
   );
@@ -264,6 +292,11 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
   const handleReset = useCallback(() => {
     setBoard(emptyBoard(rows, cols));
     setTray(initialTray(puzzle));
+    setRotations(() => {
+      const map: Record<number, number> = {};
+      for (const t of puzzle.tiles) map[t.id] = t.rotation;
+      return map;
+    });
     setRevealedIds([]);
     setRevealsLeft(REVEALS);
     setMoves(0);
@@ -334,6 +367,7 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
           <GameBoard
             puzzle={puzzle}
             board={board}
+            rotations={rotations}
             revealedIds={revealedIds}
             activeClue={activeClue}
             shake={shake}
