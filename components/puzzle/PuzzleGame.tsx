@@ -80,6 +80,7 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [activeClue, setActiveClue] = useState<number | null>(null);
   const [shake, setShake] = useState<{ key: number; tile: TrayTile } | null>(null);
+  const [wrongCell, setWrongCell] = useState<{ r: number; c: number; key: number } | null>(null);
   const [showShare, setShowShare] = useState(false);
   const [dismissed, setDismissed] = useState(false); // completion modal dismissed
   const [streak, setStreak] = useState<StreakInfo>(() => loadStreak());
@@ -212,7 +213,9 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
 
       const correct = tile.letter === cell.letter;
       if (!correct) {
-        // wrong: shake + bounce back
+        // wrong: red flash on the cell + bounce tile
+        setWrongCell({ r, c, key: Date.now() });
+        window.setTimeout(() => setWrongCell(null), 600);
         setShake({ key: Date.now(), tile: { ...tile } });
         return; // keep board unchanged
       }
@@ -418,6 +421,8 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
             revealedIds={revealedIds}
             activeClue={activeClue}
             shake={shake}
+            wrongCell={wrongCell}
+            selectedTile={selectedTile}
             onCellClick={(r, c) => {
               if (board[r][c] !== null && selected === null) {
                 // click a placed tile: pick up
