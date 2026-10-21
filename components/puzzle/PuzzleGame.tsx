@@ -81,6 +81,7 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
   const [activeClue, setActiveClue] = useState<number | null>(null);
   const [shake, setShake] = useState<{ key: number; tile: TrayTile } | null>(null);
   const [showShare, setShowShare] = useState(false);
+  const [dismissed, setDismissed] = useState(false); // completion modal dismissed
   const [streak, setStreak] = useState<StreakInfo>(() => loadStreak());
   const [settings, setSettings] = useState(() => loadSettings());
 
@@ -172,6 +173,7 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
       persist(b, t, r, done, s, m, rl);
       if (done && !completed) {
         setCompleted(true);
+        setDismissed(false);
         const st = recordCompletion(date);
         setStreak(st);
         setElapsed(s);
@@ -454,7 +456,7 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
         />
       </main>
 
-      {completed && (
+      {completed && !dismissed && (
         <div className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="pointer-events-auto mx-4 w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl dark:bg-stone-800">
             <div className="text-5xl">🎉</div>
@@ -467,7 +469,10 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
             </div>
             <div className="mt-5 flex flex-col gap-2">
               <button
-                onClick={() => setShowShare(true)}
+                onClick={() => {
+                  setDismissed(true);
+                  setShowShare(true);
+                }}
                 className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3 font-bold text-white shadow hover:opacity-90"
               >
                 Share your result
@@ -479,7 +484,7 @@ export default function PuzzleGame({ puzzle }: { puzzle: Puzzle }) {
                 Play another puzzle
               </Link>
               <button
-                onClick={() => setShowShare(false)}
+                onClick={() => setDismissed(true)}
                 className="rounded-xl bg-stone-100 py-2.5 font-semibold text-stone-600 hover:bg-stone-200 dark:bg-stone-700 dark:text-stone-300"
               >
                 Keep playing
